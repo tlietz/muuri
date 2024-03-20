@@ -14,20 +14,26 @@ import normalizeArrayIndex from './normalizeArrayIndex';
  *   - Index (positive or negative) of the item that will be swapped.
  * @param {Number} withIndex
  *   - Index (positive or negative) of the other item that will be swapped.
+ * @param {Set<Number>} frozenIndexes
+ *   - Index (positive or negative) of frozen items
  */
-export default function arraySwap(array, index, withIndex) {
-  // Make sure the array has two or more items.
-  if (array.length < 2) return;
+export default function arraySwap(array, index, withIndex, frozenIndexes = new Set()) {
+    // Make sure the array has two or more items.
+    if (array.length < 2) return;
 
-  // Normalize the indices.
-  var indexA = normalizeArrayIndex(array, index);
-  var indexB = normalizeArrayIndex(array, withIndex);
-  var temp;
+    // Normalize the indices.
+    var indexA = normalizeArrayIndex(array, index);
+    var indexB = normalizeArrayIndex(array, withIndex);
+    var temp;
 
-  // Swap the items.
-  if (indexA !== indexB) {
-    temp = array[indexA];
-    array[indexA] = array[indexB];
-    array[indexB] = temp;
-  }
+    if (frozenIndexes.has(indexB)) {
+        return
+    }
+
+    // Swap the items.
+    if (indexA !== indexB) {
+        temp = array[indexA];
+        array[indexA] = array[indexB];
+        array[indexB] = temp;
+    }
 }

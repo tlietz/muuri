@@ -14,17 +14,23 @@ import normalizeArrayIndex from './normalizeArrayIndex';
  *   - Index (positive or negative) of the item that will be moved.
  * @param {Number} toIndex
  *   - Index (positive or negative) where the item should be moved to.
+ * @param {Number} toIndex
+ *   - Index (positive or negative) where the item should be moved to.
  */
-export default function arrayMove(array, fromIndex, toIndex) {
-  // Make sure the array has two or more items.
-  if (array.length < 2) return;
+export default function arrayMove(array, fromIndex, toIndex, frozenIndexes = new Set()) {
+    // Make sure the array has two or more items.
+    if (array.length < 2) return;
 
-  // Normalize the indices.
-  var from = normalizeArrayIndex(array, fromIndex);
-  var to = normalizeArrayIndex(array, toIndex);
+    // Normalize the indices.
+    var from = normalizeArrayIndex(array, fromIndex);
+    var to = normalizeArrayIndex(array, toIndex);
 
-  // Add target item to the new position.
-  if (from !== to) {
-    array.splice(to, 0, array.splice(from, 1)[0]);
-  }
+    if (frozenIndexes.has(to)) {
+        return
+    }
+
+    // Add target item to the new position.
+    if (from !== to) {
+        array.splice(to, 0, array.splice(from, 1)[0]);
+    }
 }
