@@ -16,8 +16,10 @@ import normalizeArrayIndex from './normalizeArrayIndex';
  *   - Index (positive or negative) where the item should be moved to.
  * @param {Number} toIndex
  *   - Index (positive or negative) where the item should be moved to.
+ * @param {Set<Number>} frozenIndexes
+ *   - Index (positive or negative) of frozen items
  */
-export default function arrayMove(array, fromIndex, toIndex, frozenIndexes = new Set()) {
+export default function arrayMove(array, fromIndex, toIndex, frozenIndexes) {
     // Make sure the array has two or more items.
     if (array.length < 2) return;
 

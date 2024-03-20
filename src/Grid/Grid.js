@@ -130,6 +130,7 @@ var layoutId = 0;
  * @param {String} [options.itemDraggingClass="muuri-item-dragging"]
  * @param {String} [options.itemReleasingClass="muuri-item-releasing"]
  * @param {String} [options.itemPlaceholderClass="muuri-item-placeholder"]
+ * @param {Set<Number>} [options.frozenIndexes= new Set([])]
  */
 function Grid(element, options) {
     // Allow passing element as selector string
@@ -152,6 +153,12 @@ function Grid(element, options) {
     settings.hiddenStyles = normalizeStyles(settings.hiddenStyles);
     if (!isFunction(settings.dragSort)) {
         settings.dragSort = !!settings.dragSort;
+    }
+
+    if (options.frozenIndexes) {
+        this.frozenIndexes = options.frozenIndexes
+    } else {
+        this.frozenIndexes = new Set()
     }
 
     this._id = createUid();
@@ -391,6 +398,9 @@ Grid.defaultOptions = {
     itemDraggingClass: 'muuri-item-dragging',
     itemReleasingClass: 'muuri-item-releasing',
     itemPlaceholderClass: 'muuri-item-placeholder',
+
+    // frozenIndexes
+    frozenIndexes: new Set(),
 };
 
 /**
@@ -1140,9 +1150,9 @@ Grid.prototype.move = function(item, position, options) {
 
         // Do the move/swap.
         if (isSwap) {
-            arraySwap(items, fromIndex, toIndex);
+            arraySwap(items, fromIndex, toIndex, this.frozenIndexes);
         } else {
-            arrayMove(items, fromIndex, toIndex);
+            arrayMove(items, fromIndex, toIndex, this.frozenIndexes);
         }
 
         // Emit move event.
