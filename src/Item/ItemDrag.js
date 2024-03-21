@@ -916,7 +916,7 @@ ItemDrag.prototype._checkOverlap = function() {
                 currentGrid._items,
                 currentIndex,
                 targetIndex,
-                currentGrid.frozenIndexes
+                currentGrid._frozenIndexes
             );
 
             // Emit move event.

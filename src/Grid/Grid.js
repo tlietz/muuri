@@ -130,7 +130,7 @@ var layoutId = 0;
  * @param {String} [options.itemDraggingClass="muuri-item-dragging"]
  * @param {String} [options.itemReleasingClass="muuri-item-releasing"]
  * @param {String} [options.itemPlaceholderClass="muuri-item-placeholder"]
- * @param {Set<Number>} [options.frozenIndexes= new Set([])]
+ * @param {[]Number} [options.frozenIndexes= new Set([])]
  */
 function Grid(element, options) {
     // Allow passing element as selector string
@@ -155,11 +155,7 @@ function Grid(element, options) {
         settings.dragSort = !!settings.dragSort;
     }
 
-    if (options.frozenIndexes) {
-        this.frozenIndexes = options.frozenIndexes
-    } else {
-        this.frozenIndexes = new Set()
-    }
+    this.setFrozenIndexes(options.frozenIndexes)
 
     this._id = createUid();
     this._element = element;
@@ -400,13 +396,25 @@ Grid.defaultOptions = {
     itemPlaceholderClass: 'muuri-item-placeholder',
 
     // frozenIndexes
-    frozenIndexes: new Set(),
+    frozenIndexes: [],
 };
 
 /**
  * Public prototype methods
  * ************************
  */
+
+Grid.prototype.setFrozenIndexes = function(frozenIndexes = []) {
+    if (!frozenIndexes) {
+        this._frozenIndexes = []
+    } else {
+        const compareNumbers = (a, b) => {
+            return a - b;
+        }
+        this._frozenIndexes = [...frozenIndexes.sort(compareNumbers)]
+    }
+    return this
+}
 
 /**
  * Bind an event listener.
@@ -1150,9 +1158,9 @@ Grid.prototype.move = function(item, position, options) {
 
         // Do the move/swap.
         if (isSwap) {
-            arraySwap(items, fromIndex, toIndex, this.frozenIndexes);
+            arraySwap(items, fromIndex, toIndex, this._frozenIndexes);
         } else {
-            arrayMove(items, fromIndex, toIndex, this.frozenIndexes);
+            arrayMove(items, fromIndex, toIndex, this._frozenIndexes);
         }
 
         // Emit move event.

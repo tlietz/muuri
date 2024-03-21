@@ -2394,6 +2394,34 @@
     return index > maxIndex ? maxIndex : index < 0 ? Math.max(maxIndex + index + 1, 0) : index;
   }
 
+  function move(array, from, to, frozen) {
+      if (frozen.size === 0) {
+          array.splice(to, 0, array.splice(from, 1)[0]);
+          return
+      }
+      let frozenIndexItem = {};
+      // save the items that have been frozen to reinsert to array later 
+      // go through in reverse order so .splice() doesn't mess up indexes that are yet to be removed
+      for (let i = frozen.length - 1; i >= 0; i--) {
+          const frozenIdx = frozen[i];
+          if (from >= frozenIdx) {
+              from--;
+          }
+          if (to >= frozenIdx) {
+              to--;
+          }
+          frozenIndexItem[frozenIdx] = array.splice(frozenIdx, 1)[0];
+      }
+
+      // move all non-frozen items in array
+      array.splice(to, 0, array.splice(from, 1)[0]);
+
+      // reinsert frozen items
+      for (const idx of frozen) {
+          array.splice(idx, 0, frozenIndexItem[idx]);
+      }
+  }
+
   /**
    * Move array item to another index.
    *
@@ -2407,21 +2435,22 @@
    * @param {Set<Number>} frozenIndexes
    *   - Index (positive or negative) of frozen items
    */
-  function arrayMove(array, fromIndex, toIndex, frozenIndexes) {
+  function arrayMove(array, fromIndex, toIndex, frozenIndexes = []) {
       // Make sure the array has two or more items.
       if (array.length < 2) return;
+      console.log(frozenIndexes);
 
       // Normalize the indices.
       var from = normalizeArrayIndex(array, fromIndex);
       var to = normalizeArrayIndex(array, toIndex);
 
-      if (frozenIndexes.has(to)) {
+      if (frozenIndexes.includes(to)) {
           return
       }
 
       // Add target item to the new position.
       if (from !== to) {
-          array.splice(to, 0, array.splice(from, 1)[0]);
+          move(array, from, to, frozenIndexes);
       }
   }
 
@@ -3599,7 +3628,7 @@
                   currentGrid._items,
                   currentIndex,
                   targetIndex,
-                  currentGrid.frozenIndexes
+                  currentGrid._frozenIndexes
               );
 
               // Emit move event.
@@ -7364,7 +7393,7 @@
    * @param {String} [options.itemDraggingClass="muuri-item-dragging"]
    * @param {String} [options.itemReleasingClass="muuri-item-releasing"]
    * @param {String} [options.itemPlaceholderClass="muuri-item-placeholder"]
-   * @param {Set<Number>} [options.frozenIndexes= new Set([])]
+   * @param {[]Number} [options.frozenIndexes= new Set([])]
    */
   function Grid(element, options) {
       // Allow passing element as selector string
@@ -7389,11 +7418,7 @@
           settings.dragSort = !!settings.dragSort;
       }
 
-      if (options.frozenIndexes) {
-          this.frozenIndexes = options.frozenIndexes;
-      } else {
-          this.frozenIndexes = new Set();
-      }
+      this.setFrozenIndexes(options.frozenIndexes);
 
       this._id = createUid();
       this._element = element;
@@ -7634,13 +7659,25 @@
       itemPlaceholderClass: 'muuri-item-placeholder',
 
       // frozenIndexes
-      frozenIndexes: new Set(),
+      frozenIndexes: [],
   };
 
   /**
    * Public prototype methods
    * ************************
    */
+
+  Grid.prototype.setFrozenIndexes = function(frozenIndexes = []) {
+      if (!frozenIndexes) {
+          this._frozenIndexes = [];
+      } else {
+          const compareNumbers = (a, b) => {
+              return a - b;
+          };
+          this._frozenIndexes = [...frozenIndexes.sort(compareNumbers)];
+      }
+      return this
+  };
 
   /**
    * Bind an event listener.
@@ -8384,9 +8421,9 @@
 
           // Do the move/swap.
           if (isSwap) {
-              arraySwap(items, fromIndex, toIndex, this.frozenIndexes);
+              arraySwap(items, fromIndex, toIndex, this._frozenIndexes);
           } else {
-              arrayMove(items, fromIndex, toIndex, this.frozenIndexes);
+              arrayMove(items, fromIndex, toIndex, this._frozenIndexes);
           }
 
           // Emit move event.
